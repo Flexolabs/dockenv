@@ -1,0 +1,47 @@
+version: '2.1'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./.infra/docker/php/Dockerfile
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - XDEBUG_DISABLE=${XDEBUG_DISABLE}
+      - OPCACHE_STAT=${OPCACHE_STAT}
+    env_file: ./.env
+    volumes:
+      - .:/app
+  db:
+    build:
+      context: .
+      dockerfile: ./.infra/docker/mysql/Dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USER}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+    env_file: ./.env
+    ports:
+      - '53306:3306'
+    volumes:
+      - db:/var/lib/mysql
+  web:
+    build:
+      context: .
+      dockerfile: ./.infra/docker/nginx/Dockerfile
+    depends_on:
+      - app
+    env_file: ./.env
+    ports:
+      - '50080:80'
+    volumes:
+      - .:/app
+volumes:
+  db: ~
